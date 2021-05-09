@@ -1,0 +1,320 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "SDS348"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+```
+
+*Shivani Madhav sm44452*
+
+## Introduction 
+- **0.** Introduce your dataset and each of your variables (or just your main variables if you have lots) in a paragraph. What are they measuring? How many observations?
+```{R}
+winequality <- read_csv('/stor/home/sm44452/Project/winequality.csv')
+winequalityN <- read_csv('/stor/home/sm44452/Project/winequalityN.csv')
+
+library(lmtest)
+library(sandwich)
+library(plotROC)
+library(tidyverse)
+library(MASS)
+library(glmnet)
+library(ggplot2)
+
+winequality %>% na.omit()
+```
+The data set I am using will be consisting of different features of Red and White wines. It relates to variants of the Portuguese "Vinho Verde" wine. Ever since I went to my first vineyard after turning 21, this is something I have found to be quite interesting! I got this data set from a website called Kaggle. The categorical variable "type" consists of the 2 different wines: White and Red. The "volatile acidity" variable is a measure of the amount of acetic acid in wine that causes a vinegar like taste at high levels. The next variable "citric acid" is a measure of how much citric acid is in the wine which leads to a fresh taste. The "residual sugar" variable indicates the amount of sugar left in the wine after fermentation. The "chlorides" variable indicates the amount of salt in the wine. The "density" is the density of the wine. The "pH" indicates how acidic (closer to 0) or basic (closer to 14) the wine is. The "sulphates" indicates the amount of wine additive which can contribute to sulfur dioxide gas levels which acts as an antimicrobial. The "alcohol" variable indicates the percent alcohol in the wine. In total there are 9 variables with 6,497 observations.
+
+
+## MANOVA/ANOVA/Error
+- **1. (15 pts)** Perform a MANOVA testing whether any of your numeric variables (or a subset of them, if including them all is unreasonable or doesn't make sense) show a mean difference across levels of one of your categorical variables (3). If they do, perform univariate ANOVAs to find response(s) showing a mean difference across groups (3), and perform post-hoc t tests to find which groups differ (3). Discuss the number of tests you have performed, calculate the probability of at least one type I error (if unadjusted), and adjust the significance level accordingly (bonferroni correction) before discussing significant differences (3). Briefly discuss some of the MANOVA assumptions and whether or not they are likely to have been met here (no need for anything too in-depth) (2).
+```{R}
+#MANOVA 
+manovawine <- manova(cbind(volatile_acidity, citric_acid, pH)~type, data=winequality)
+summary(manovawine)
+```
+*The MANOVA was run to see the effect of type of wine on the the volatile acidity, citric acidity, and pH of the different Portuguese wines. The results indicate that significant differences were found among each of the variables.*
+
+```{R}
+#Univariate ANOVA
+summary.aov(manovawine)
+```
+*Next an ANOVA test was run for each dependent variable from the previous MANOVA. The univariate ANOVA for all 3 variables were significantly different by wine type.*
+```{R}
+#Post-Hoc T-Test volatile acidity
+pairwise.t.test(winequality$volatile_acidity, winequality$type, p.adj="none")
+#Post-Hoc T-Test citric acidity
+pairwise.t.test(winequality$citric_acid, winequality$type, p.adj="none")
+#Post-Hoc T-Test pH
+pairwise.t.test(winequality$pH, winequality$type, p.adj="none")
+```
+*All 3 of the variables had a p-value that was less than 2e-16 indicating it is close to 0. Since it is less than .05, this indicates a significant value. This means that red and white wine significantly differ in volatile acidity, citric acidity, and pH.*
+
+
+```{R}
+#Type-1 Error 
+1-(1-0.05)^7
+```
+A total of 7 different hypothesis were run (1 Manova, 3 Anova, and 3 t-test), so the probability of at least one Type 1 error occurring was 0.3016627. 
+```{R}
+#Bonferroni Correction 
+0.05/7
+```
+*The Bonferroni Correction adjusted the significance level so that the Type 1 error is kept at .05. The new adjusted significance level is .007142857.*
+
+```{R}
+#Adjusted Post-Hoc T-tests with Bonferroni Correction
+pairwise.t.test(winequality$volatile_acidity, winequality$type, p.adj="bonf")
+pairwise.t.test(winequality$citric_acid, winequality$type, p.adj="bonf")
+pairwise.t.test(winequality$pH, winequality$type, p.adj="bonf")
+```
+*After using the Bonferroni correction and adjusting the significance level, the differences between red and white wine stayed the same for each variable as before. This probably indicates that all the  assumptions for the ANOVA test were met. However, the assumptions of the MANOVA test might not have been met since there are so many assumptions. No extreme univariate or multivariate outliers, Homogeneity of within-group covariance matrices, and multivariate normality of DVs are just some of the extra assumptions the test requires which make it hard to find a dataset fitting all the requirements. *
+
+## Randomization test + Plot
+- **2. (10 pts)** Perform some kind of randomization test on your data (that makes sense). The statistic can be anything you want (mean difference, correlation, F-statistic/ANOVA, chi-squared), etc. State null and alternative hypotheses, perform the test, and interpret the results (7). Create a plot visualizing the null distribution and the test statistic (3).
+
+Null and ALternative Hypothesis :
+Null (Ho): The mean alcohol percentage is the same for white and red wines. 
+Alternative (Ha): The mean alcohol percentage is different for white and red wines. 
+
+```{R}
+#Mean Difference test
+
+#Test Statistic 
+mean_difference <-mean(winequality[winequality$type=="white",]$alcohol)~mean(Cwinequality[winequality$type=="red",]$alcohol)
+
+#Permutation Loop
+rand_dist<-vector()
+for(i in 1:5000){
+new<-data.frame(alcohol=sample(winequality$alcohol),type=winequality$type)
+rand_dist[i]<-mean(new[new$type=="white",]$alcohol)- mean(new[new$type=="red",]$alcohol)}
+
+#Independent T-Test  
+t.test(data=winequality, alcohol~type)
+```
+*The p-value is .004278 which is below .05 meaning that we can reject the null hypothesis. This means that the mean alcohol percentage is significantly different for white and red wines based off of the sample in the dataset.*
+
+```{R}
+#Plot 
+ggplot(data.frame("rand_dist" = as.numeric(rand_dist)), aes(x=rand_dist)) +
+  geom_histogram(binwidth = 0.025, boundary = 0) +
+  geom_vline(xintercept = quantile(rand_dist, 1e-04),col="red")
+```
+*Based on the plot, the mean difference lies on the far left indicating a low likelihood of there being no difference in mean between the two groups.*
+
+## Linear Regression Model
+- **3. (40 pts)** Build a linear regression model predicting one of your response variables from at least 2 other variables, including their interaction. Mean-center any numeric variables involved in the interaction.
+
+```{R}
+#Mean-Centering Numeric Variables
+winequalityN$residual_sugar_c <- winequalityN$residual_sugar - mean(winequalityN$residual_sugar, na.rm = T)
+winequalityN$sulphates_c <- winequalityN$sulphates - mean(winequalityN$sulphates, na.rm = T)
+
+#Linear Regression with Interaction 
+fit1 <-lm(sulphates ~ type * residual_sugar, data = winequality)
+summary(fit1)
+```
+*When there is no interaction between type of wine and residual sugar, the intercept estimate of 0.6563754 is the average amount of sulphates. The coefficient estimate of -.1627718 is how much the average amount of sulphates decreases when the type of wine is white. The coefficient estimate of 0.0006707 is how much the average amount of sulphates increases with the increase in residual sugar. The coefficient of typewhite:residual_sugar is how much average sulphates will increases if the type of wine was white and the residual sugar decreases (-0.0012646).*
+
+```{R}
+#Plotting Regression
+ggplot(winequality, aes(x=residual_sugar, y=sulphates, group=type))+geom_point(aes(color=type))+
+geom_smooth(method="lm",se=F,fullrange=T,aes(color=type))+ ggtitle("Interaction between Type of Wine and Amount of Residule Sugar on Sulphates in the wine") + xlab("Residual Sugar")
+```
+```{R}
+#Proportion of Variation 
+summary(fit1)
+```
+*The proportion of variation in sulphates that is explained by the model is approximately 0.2375. The adjusted R squared value of 0.2371 very similar as well. *
+
+
+```{R}
+#Checking Assumptions 
+resid <-fit1$residuals
+fitvalue <- fit1$fitted.values
+
+#Normality Shapiro-Wilk Test
+shapiro.test(resid[0:5000])
+
+#Linearity
+ggplot(winequality, aes(x=residual_sugar, y=sulphates)) + geom_point() + geom_smooth(method = "lm", se=F)
+
+#Homoskedasticity Breuch-Pagan Test 
+bptest(fit1)
+
+```
+*The Shapiro Wilk test gives a p-value less than .05 indicating that the results are significant and normality is rejected. The relationship between the 2 variables residual sugars and sulphates seems to be linear according to the graph.A ccording to the Breusch-Pagan Test, the null hypothesis of homoskedasticity was rejected since the p-value is significant. Overall, the assumptions for linearity is somewhat met, but the assumptions for homoskedasticity and the assumptions for normality were not met.*
+
+```{R}
+#Heteroskedasticity Robust SE
+coeftest(fit1, vcov = vcovHC(fit1))
+```
+
+*After redoing the regression with heteroskedasticity robust standard errors since homoskedasticity was not met, the t-values changed a little. The significance did not change for any variables though.*
+
+
+## Regression Model with Interaction and Bootstrapped SE
+- **4. (5 pts)** Rerun same regression model (with the interaction), but this time compute bootstrapped standard errors (either by resampling observations or residuals). Discuss any changes you observe in SEs and p-values using these SEs compared to the original SEs and the robust SEs)
+```{R}
+#Bootstrapped SE
+samp_dist<-replicate(5000, {
+boot_dat<-boot_dat<-winequalityN[sample(nrow(winequalityN),replace=TRUE),]
+fit2<-lm(sulphates_c ~ type * residual_sugar, data=boot_dat)
+coef(fit2)})
+samp_dist%>%t%>%as.data.frame%>%summarize_all(sd)
+
+```
+*The model was run again with the bootstrapped SE since the data was initially deemed to be non-normal. The standard errors from the bootstrapped model were approximately the same as the SE that were from the heteroskedastic and slightly lower than the original standard errors. * 
+
+## Logistic Regression Model With Binary Variable
+- **5. (30 pts)** Fit a logistic regression model predicting a binary variable (if you don't have one, make/get one) from at least two explanatory variables (interaction not necessary). 
+
+```{R}
+#data prep
+winequalityN <-winequalityN %>% na.omit()%>%mutate(y=as.numeric(type=="red"))
+
+#Log. Regress Model
+fit4 <- glm(y ~ chlorides + alcohol, data = winequalityN, family = binomial)
+coeftest(fit4)
+
+exp(83.436979)
+exp(0.467326)
+```
+*Controlling for alcohol percentage, there is a significant effect of type of wine on the amount of chlorides in it. Every additional increase in percentage of alcohol multiplies the odds of it being red wine by 1.722739e+36. When controlling for chlorides, there continues to be a significant effect of the type of wine in relation to the alcohol percentage, as was seen above.* 
+
+```{R}
+#Confusion Matrix 
+winequalityN$prob <- predict(fit4, type = "response")
+
+table(predict=as.numeric(winequalityN$prob>5), truth=winequalityN$y) %>% addmargins
+
+#Accuracy
+4876/6469
+#Sensitivity  
+0/4876
+#Specificity
+4876/6469
+#Precision
+0/6469
+```
+*Based on confusion matrix, the accuracy of the model is approximately 0.7537486 which represents the number of predicted red wines that are actually red wines. The specificity is the same number. The sensitivity of the model is 0 which makes sense as there are no predicted white wines and the precision is also 0. *
+
+```{R}
+#Density of Log-Odds Plot
+winequalityN$odds <- (winequalityN$prob)/(1-winequalityN$prob)
+winequalityN$logit <- log(winequalityN$odds)
+
+ggplot(winequalityN) + geom_density(aes(logit, fill= type), alpha=0.6)
+
+#ROC Curve and AUC Calculation 
+ROCplot <- ggplot(winequalityN) +geom_roc(aes(d=y, m=prob), n.cuts = 0) + geom_segment(aes(x=0, xend=1, y=0, yend=1))
+ROCplot
+
+calc_auc(ROCplot)
+```
+*The calculated AUC for this model is 0.9573412	which is really good and indicates the variables are good predictors for type of wine! It represents the probability of selecting a red wine with a higher prediction than a white wine when you take both chlorides and alcohol percentage.*
+
+- **6. (25 pts)** Perform a logistic regression predicting the same binary response variable from *ALL* of the rest of your variables (the more, the better!) 
+```{R}
+#Logistic Regression Model
+fit5 <- glm(y ~ volatile_acidity + citric_acid + residual_sugar + chlorides + density + pH + sulphates + alcohol, data = winequalityN, family = binomial(link = "logit"))
+coeftest(fit5)
+
+```
+
+```{R}
+#Confusion Matrix 
+winequalityN$prob <- predict(fit5, type ="response")
+table(predict=as.numeric(winequalityN$prob>.5),truth=winequalityN$y)%>% addmargins()
+
+#Accuracy
+(4843+1553)/6469
+#Sensitivity 
+1553/1593
+#Specificity
+4843/4876
+#Precision
+1553/1586
+```
+*The accuracy calculation of 0.9887154 indicates the number of red wines that are actually red wine. The sensitivity of 0.9748901 represents the number of predicted white wines. The specificity rate includes both types of wines and is 0.9932322. The precision calculation of 0.9791929 represents the number of white wines that are actually white wines.*
+```{R}
+class_diag <- function(probs,truth){ 
+  if(is.character(truth)==TRUE) truth<-as.factor(truth) 
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1 
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),factor(truth, levels=c(0,1))) 
+  acc=sum(diag(tab))/sum(tab) 
+  sens=tab[2,2]/colSums(tab)[2] 
+  spec=tab[1,1]/colSums(tab)[1] 
+  ppv=tab[2,2]/rowSums(tab)[2] 
+
+  ord<-order(probs, decreasing=TRUE) 
+  probs <- probs[ord]; truth <- truth[ord] 
+  TPR=cumsum(truth)/max(1,sum(truth))  
+  FPR=cumsum(!truth)/max(1,sum(!truth)) 
+  dup <-c(probs[-1]>=probs[-length(probs)], FALSE) 
+  TPR <-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1) 
+  n <- length(TPR) 
+  auc <- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n])) 
+  data.frame(acc,sens,spec,ppv,auc) 
+}
+
+
+#10-Fold CV
+set.seed(1234)
+k=10
+data1<-winequalityN[sample(nrow(winequalityN)),]
+folds<-cut(seq(1:nrow(winequalityN)),breaks=k,labels=F)
+diags<-NULL
+for(i in 1:k){
+tenfold<-data1[folds!=i,]
+test<-data1[folds==i,]
+truth<-test$y
+fit<-glm(y ~ volatile_acidity + citric_acid + residual_sugar + chlorides + density + pH + sulphates + alcohol,data=tenfold,family="binomial")
+probs<-predict(fit,newdata = test,type="response")
+diags<-rbind(diags,class_diag(probs,truth))
+}
+apply(diags,2,mean)
+```
+*According to the 10-Fold CV results, the out of sample accuracy is 0.9887155, the sensitivity is 0.9743803, the specificity is 0.9932135,the precision is 0.9793004, and the AUC is 0.9951497. The AUC increased and is still high meaning the model is a good predictor for determining the type of wine.*
+```{R}
+#LASSO
+fit6 <- lm(y~., data = winequalityN, family="binomial")
+
+y<-as.matrix(winequalityN$y)
+x<-model.matrix(fit6)
+cv <- cv.glmnet(x, y, family="binomial")
+lasso <- glmnet(x, y, family="binomial", lambda = cv$lambda.1se)
+coef(lasso)
+```
+*Although my AUC values were high, the LASSO did not produce any non-zero variable (except for type which I cannot use for the CV). Even when running cv$lambda.min, I reached the same results. *
+
+...
+
+
+
+
+

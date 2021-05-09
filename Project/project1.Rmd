@@ -1,0 +1,202 @@
+---
+title: 'Project 1: Exploratory Data Analysis'
+author: "Shivani Madhav sm44452"
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+  pdf_document:
+    toc: no
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+
+```
+## Data Wrangling and Data Exploration
+
+
+## Introduction 
+
+```{R}
+### Intro Packages and Data
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(tibble)
+library(readr)
+
+Sanitation <- read_csv('/stor/home/sm44452/Project/Sanitation.csv')
+Country_information <- read_csv('/stor/home/sm44452/Project/Country_information.csv')
+
+```
+- The data sets I have chosen for this project contains various information for countries in the year of 2017 relating to access to sanitized water and country statistics. The first data set called Country_information has 4 variables: Country, Region, Surface Area(km), and Population(in thousands). The data was acquired online from a website called Kaggle. The second data set called Sanitation has 2 variables: Country and Percent Access to Sanitized Water. I got this information from gapminder.com. The reason I chose this data is because I was interested in seeing whether the actual geography and population of a country played a role in the access people have to clean water. Many times even though a country is well developed with a large population the actual population that has sanitized water readily available can be quite low so understanding these different relationships would be interesting to understand. I do expect that with an increase in population could cause an increase in sanitized water and I do think well developed regions will have more access. However, I am not sure if there will be any correlation between surface area and access, but I do hypothesize as surface area increases that access to clean water may decrease in that country. 
+  
+## Joining/Merging
+```{R}
+###Joined Data
+Joined_Project <- Country_information %>% left_join(Sanitation)
+Joined_Project %>% na.omit()
+```
+- My data was already tidy so I will reshape it elsewhere. I chose to do a left join function because the common variable was country. It made sense to just combine all the data by doing a left join to keep that variable in tact in both sets and then add the extra access to sanitized water column on the side. To begin with, the Sanitation data set had 355 observations with 2 variables and the Country info data had 720 observations with 5 variables. I also then used the N/A emit function to make sure any rows with out values were excluded and this included 10 rows. Now there are 170 rows with 5 columns. 
+
+## Wrangling 
+```{R}
+###Filter, Select, and Arrange Function
+Joined_Project %>% filter(between(access,.9,1))
+Joined_Project %>% filter(Region == "WesternAsia") %>% select(access, Region, country) %>% arrange(desc(access))
+
+```
+- First I decided to filter the data to see how many countries had high access to water (ranging between 90-100%). From the 180 total observations, 88 fell in this category. After observing the data, the Western Asia region seemed to have the highest number of countries according to the filter above. To view the corresponding countries that associated with that I did another filter just with the Western Asia region. Then I used the select function to specifically find corresponding data for only the access, region, and country. Next using the arrange function I ordered the percent access in descending order to better see best to worst access in the top countries. This allowed me to better view exactly which countries in Western Asia seem to have the most access to clean water and this included: Bahrain, Israel, Kuwait, Malaysia, Oman, Qatar, Saudi Arabia. 
+
+
+```{R}
+###Select Function and Correlation Matrix
+cormat <- Joined_Project %>% na.omit() %>% select_if(is.numeric) %>% cor()
+head(cormat)
+```
+- In this case, the select function was used. This allowed me to create the correlation matrix of all of the numeric values in the joined data. Based off the matrix, it can be seen that surface area and access have barely any correlation. However, surface area and population are positively correlated a bit, meaning if the surface area increases there is an increase in population. Lastly there seems to be no correlation between access and population. This is surprising as I would have expected a strong positive correlation. However, I will continue investigating the data to see if there are other trend present.  
+
+
+```{R}
+### Mutate Function 
+Joined_Project %>% mutate(`access_pctile` = ntile(access,100)) %>% na.omit()
+```
+- The mutate function was used and a new variable called access_pctile was created. Before the access data was listed as a decimal, but this made it hard to see how good countries access to sanitized water was compared to another. The creation of the new variable allows us to easily compare each countries percentile when it comes to access. From this I could see that many other well developed countries like Japan, 
+Monaco, and New Zealand also had a high percentile when it came to access compared to other countries, proving part of my hypothesis correct. 
+```{R}
+##Pivot Wider
+Joined_Project %>%
+  select(-SurfaceArea, -`Population(thousands)`)%>% pivot_wider(names_from="Region", values_from="access") %>% summarize_if(is.numeric, mean, na.rm = T)
+
+```
+-I wanted to then see if different regions showed specific trends in terms of access. By performing the Pivot function on the data and viewing it wider I am able to see the mean access to sanitized water in each region without the other 3 variables. From this, Oceania, Central Asia, and Western Europe show some of the highest means. I did not perform a pivot longer function as this would not be an efficient way to view the data. 
+
+```{R}
+###Summary All Numeric variables
+Joined_Project %>%summarize(SurfaceArea)%>% arrange(desc(SurfaceArea)) %>% na.omit()
+Joined_Project %>%summarize(`Population(thousands)`)%>% arrange(desc(`Population(thousands)`)) %>% na.omit()
+Joined_Project %>%summarize(access)%>%arrange(desc(access)) %>% na.omit()
+```
+-I wanted to see an overview and summary of all the numeric variables by viewing them in descending view just to get a big picture idea. Below I will go in depth for the numeric variables in terms of the categories: Region and Country.  
+
+```{R}
+###Summarize: Group By Region
+Joined_Project %>% group_by(Region) %>% summarize_if(is.numeric, 
+    mean, na.rm = T) 
+Joined_Project %>% group_by(Region) %>% summarize_if(is.numeric, 
+    sd, na.rm = T) 
+Joined_Project %>% group_by(Region) %>% summarize_if(is.numeric, 
+    var, na.rm = T) 
+Joined_Project %>% group_by(Region) %>% summarize_if(is.numeric, 
+    min, na.rm = T) 
+Joined_Project %>% group_by(Region) %>% summarize_if(is.numeric, 
+    max, na.rm = T) 
+```
+-I began to perform summary stats and grouped them by region. I used all 5 different functions within summarize in order to find more interesting information. This allows me to prove part of my hypothesis correct, because as expected less well developed regions such as Western Africa, Melanesia, and Middle Africa show the least access to sanitation. I found it interesting that Southern Africa and North America had some of the biggest standard deviations showing that countries in this region have very different values in terms of access to water. 
+
+```{R}
+### Summarize: Group By Country
+Joined_Project %>% group_by(country) %>% summarize_if(is.numeric, 
+    mean, na.rm = T) %>% arrange(desc(`Population(thousands)`)) %>% na.omit()
+
+```
+-I then ran the only relevant summary statistic after grouping by country. This gave me the mean percent to access for each country. Overall from all the summary statistics, I can tell that even when the countries have small populations for instant Andorra, they can still have extremely high access as I had predicted. However, that is not always the case because highly populated countries like the Germany have high access too. 
+## Visualization
+```{R}
+###Visual Corr. Matrix
+cormat %>% as.data.frame %>%  rownames_to_column %>% pivot_longer(-1)%>% ggplot(aes(rowname,name,fill=value))+geom_tile()+  geom_text(aes(label=round(value,2)))+  xlab("")+ylab("")+coord_fixed()
+```
+-I had already created a correlation matrix in a part above. In this part, I created a visual of a correlation heatmap with numeric variables. From this it can be noted that Surface Area and Population are somewhat positively correlated, meaning that if one goes up so will the other. However, the values for access and population/surface area are so low, it can be said that there is no correlation. 
+
+
+```{R}
+###GRAPH 1
+Joined_Projectgraph <-
+  Joined_Project %>%
+  filter(`Population(thousands)` <= 100000)
+  
+  
+ggplot(data = Joined_Projectgraph, aes(x = Joined_Projectgraph$`Population(thousands)`, y = Joined_Projectgraph$`access`)) + geom_point(aes(color = Joined_Projectgraph$`SurfaceArea`)) + 
+    stat_smooth(method = "gam", formula = y ~ s(x), size = 0.5, 
+        color = "green") + xlab("Population") + scale_y_continuous(name = "Access", 
+    breaks = c(0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1)) + scale_x_continuous(name = "Population(thousands)", 
+    breaks = c(0,10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000))+ ggtitle("Population vs. Surface Area % Access to Sanitized water in 2017") + 
+    labs(color = "Surface Area (km)")
+```
+- In this graph, I wanted to better visualize smaller populations and how correlated they are with access and surface area. The plot accounted for countries that had populations less than 100,000. Then I tried to create a plot that would show a line to indicate the correlation with the smaller populations and access. Although there is somewhat of a positive correlation, it is not very strong. Most of the smaller populations do tend to indicate a value of .6 or higher when it comes to access to sanitized water. There is also a lot of variance in populations still. 
+
+```{R}
+###GRAPH 2
+ggplot(Joined_Project, aes(Joined_Project$`access`, Joined_Project$`Population(thousands)`, 
+    color = log10(SurfaceArea)), stat = "summary") + geom_point(size = 0.8) + 
+    scale_y_continuous("Population(thousands)", limits=c(0, 100000)) + scale_color_gradient(low = "red",
+    high = "yellow") + labs(color = "Log Surface Area (km)") + ggtitle("Access to Sanitized Water and Population of Countries with Surface Area of Countries in 2017") + 
+    scale_x_continuous("Access to Sanitized Water") + scale_size()
+```
+-From the plot above, we can see the access to sanitized water with the population of countries with the log of surface area for all countries provided in the data set in 2017. Based on this, as the access to sanitized water increased the population decreased. The correlation is not very strong though because a visible trend cannot be easily seen. I decided to log the surface area to get a better view of the correlation. There was a wide spread of data. Many of the countries with larger surface areas seem to have less access to sanitized water. However based on the data found above and this plot, we can assume there is not much correlation between these two variables. We can see that as the population increases the points get more yellow indicating a positive correlation between surface area and population. 
+
+## Dimensionality Reduction
+```{R}
+###PCA set up
+data_norm <- Joined_Project %>% select_if(is.numeric) %>% na.omit %>% 
+    scale
+data_pca <- princomp(data_norm)
+summary(data_pca, loadings = T)
+```
+-PCA shows which variables have the greatest variance within the data set. To start I scaled my data and selected the numeric variables. Then I ran princomp to actually run the PCA on the prepared variables and showed the summary. The loading for some of the components do not show up because they are so close to zero. The first principle component increases with increasing Surface Area and Population. The second principle component increases with greater access to sanitized water. Component 3 increases with greater Surface Area but decreases with Population. 
+
+```{R}
+###Eigen value and Scree Plot
+eigenval <- data_pca$sdev^2
+varprop = round(eigenval/sum(eigenval), 2)
+ggplot() + geom_bar(aes(y = varprop, x = 1:3), stat = "identity") + 
+    xlab("") + geom_path(aes(y = varprop, x = 1:3)) + geom_text(aes(x = 1:3, 
+    y = varprop, label = round(varprop, 2)), vjust = 1, col = "white", 
+    size = 5) + scale_y_continuous(breaks = seq(0, 0.6, 0.2), 
+    labels = scales::percent) + scale_x_continuous(breaks = 1:3)
+```
+-I then plotted the eigenvalues to determine how many PCs to keep. The eigen value represents how much variance the data has in a certain direction. I initially decided to keep all 3 since there is no leveling off/flattening of the curve present. However, the total variance is greater than 80% after keeping just the first 2 so I will continue the next part with just 2. 
+
+```{R}
+###Kaisers Rule
+round(cumsum(eigenval)/sum(eigenval), 2)
+eigenval
+```
+-Then I found the cumulative proportion of variance. Using Kaiser's Rule,  I would pick Comp 1 because the PC value for Comp 1 is the only one that is greater than 1.
+
+```{R}
+dataframe <- data.frame(PC1 = data_pca$scores[, 1], PC2 = data_pca$scores[, 
+    2], PC3 = data_pca$scores[, 3])
+ggplot(dataframe, aes(PC1, PC2)) + geom_point() 
+```
+-Although I thought that using only PC1 would be sufficient, I had to pick PC1 and PC2 in order to create a better comparison. There are some outliars present in this plot towards the right side of the graph. The high values those points have for PC1 could indicate very high values for Surface Area and Population. The points with values greater than 1 for PC2 indicate very high values for access in certain areas. For the most part the cluster is around 0 on the x-axis and -2 to +1 on the y-axis showing a relatively normal distribution. 
+
+```{R}
+data_pca$loadings[1:2, 1:3] %>% as.data.frame %>% rownames_to_column %>% 
+ggplot() + geom_hline(aes(yintercept=0), lty=2) + 
+  geom_vline(aes(xintercept=0), lty=2) + ylab("PC2") + xlab("PC1") + 
+  geom_segment(aes(x=0, y=0, xend=Comp.1, yend=Comp.2), arrow=arrow(), col="red") + 
+  geom_label(aes(x=Comp.1*1.1, y=Comp.2*1.1, label=rowname))
+```
+-This graph shows the coefficients of each variable for the first component versus the coefficients for the second component. Based on this, Surface area and Population have the same amount of positive influence on PC1.  However, they don't seem to have that much of an influence on PC2, which in this case correlates with access. Overall, from interpreting the results in all the plots above, it is clear that neither surface Area or Population had a great influence on the Access people have to sanitized water in 2017, but there is an increase in Surface Area as Population increases. My overall hypothesis was incorrect and more data would be needed to prove otherwise. 
+
+
+```{r eval=F}
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+
+
+...
+
+
+
+
+

@@ -1,0 +1,181 @@
+country,Region,SurfaceArea,Population(thousands)
+Afghanistan,SouthernAsia,652864,35530
+Albania,SouthernEurope,28748,2930
+Algeria,NorthernAfrica,2381741,41318
+Andorra,SouthernEurope,468,77
+Angola,MiddleAfrica,1246700,29784
+Antigua and Barbuda,Caribbean,442,102
+Argentina,SouthAmerica,2780400,44271
+Armenia,WesternAsia,29743,2930
+Australia,Oceania,7692060,24451
+Austria,WesternEurope,83871,8736
+Azerbaijan,WesternAsia,86600,9828
+Bahamas,Caribbean,13940,395
+Bahrain,WesternAsia,771,1493
+Bangladesh,SouthernAsia,147570,164670
+Barbados,Caribbean,431,286
+Belarus,EasternEurope,207600,9468
+Belgium,WesternEurope,30528,11429
+Belize,CentralAmerica,22966,375
+Benin,WesternAfrica,114763,11176
+Bermuda,NorthernAmerica,53,61
+Bhutan,SouthernAsia,38394,808
+Bosnia and Herzegovina,SouthernEurope,51209,3507
+Botswana,SouthernAfrica,582000,2292
+Brazil,SouthAmerica,8515767,209288
+Brunei,South-easternAsia,5765,429
+Bulgaria,EasternEurope,111002,7085
+Burkina Faso,WesternAfrica,272967,19193
+Burundi,EasternAfrica,27830,10864
+Cambodia,South-easternAsia,181035,16005
+Cameroon,MiddleAfrica,475650,24054
+Canada,NorthernAmerica,9984670,36624
+Central African Republic,MiddleAfrica,622984,4659
+Chad,MiddleAfrica,1284000,14900
+Chile,SouthAmerica,756102,18055
+China,EasternAsia,9600000,1409517
+Colombia,SouthAmerica,1141748,49066
+Comoros,EasternAfrica,2235,814
+Congo,MiddleAfrica,342000,5261
+Costa Rica,CentralAmerica,51100,4906
+Croatia,SouthernEurope,56594,4189
+Cuba,Caribbean,109884,11485
+Cyprus,WesternAsia,9251,1180
+Czech Republic,EasternEurope,78868,10618
+Denmark,EasternAsia,42921,5734
+Djibouti,EasternAfrica,23200,957
+Dominica,Caribbean,750,74
+Dominican Republic,Caribbean,48671,10767
+Ecuador,SouthAmerica,257217,16625
+Egypt,NorthernAfrica,1002000,97553
+El Salvador,CentralAmerica,21041,6378
+Equatorial Guinea,MiddleAfrica,28052,1268
+Eritrea,EasternAfrica,117600,5069
+Estonia,NorthernEurope,45227,1310
+Ethiopia,EasternAfrica,1104300,104957
+Fiji,Melanesia,18272,906
+Finland,NorthernEurope,338440,5523
+France,WesternEurope,551500,64980
+Gabon,MiddleAfrica,267668,2025
+Gambia,WesternAfrica,11295,2101
+Georgia,WesternAsia,69700,3912
+Germany,WesternEurope,357376,82114
+Ghana,WesternAfrica,238537,28834
+Greece,SouthernEurope,131957,11160
+Grenada,Caribbean,345,108
+Guatemala,CentralAmerica,108889,16914
+Guinea,WesternAfrica,245857,12717
+Guyana,SouthAmerica,214969,778
+Haiti,Caribbean,27750,10981
+Honduras,CentralAmerica,112492,9265
+Hungary,EasternEurope,93024,9722
+Iceland,NorthernEurope,103000,335
+India,SouthernAsia,3287263,1339180
+Indonesia,South-easternAsia,1910931,263991
+Iran,SouthernAsia,1628750,81163
+Iraq,WesternAsia,435052,38275
+Ireland,NorthernEurope,69797,4762
+Israel,WesternAsia,22072,8322
+Italy,SouthernEurope,302073,59360
+Jamaica,Caribbean,10990,2890
+Japan,EasternAsia,377930,127484
+Jordan,WesternAsia,89318,9702
+Kazakhstan,CentralAsia,2724902,18204
+Kenya,EasternAfrica,591958,49700
+Kiribati,Micronesia,726,116
+Kuwait,WesternAsia,17818,4136
+Kyrgyzstan,CentralAsia,199949,6045
+Lao,South-easternAsia,236800,6858
+Latvia,NorthernEurope,64573,1950
+Lebanon,WesternAsia,10452,6082
+Lesotho,SouthernAfrica,30355,2233
+Liberia,WesternAfrica,111369,4732
+Libya,NorthernAfrica,1676198,6375
+Liechtenstein,WesternEurope,160,38
+Lithuania,NorthernEurope,65286,2890
+Luxembourg,WesternEurope,2586,584
+Madagascar,EasternAfrica,587295,25571
+Malawi,EasternAfrica,118484,18622
+Malaysia,WesternAsia,330323,31624
+Maldives,SouthernAsia,300,436
+Mali,WesternAfrica,1240192,18542
+Malta,SouthernEurope,315,431
+Marshall Islands,Micronesia,181,53
+Mauritania,WesternAfrica,1030700,4420
+Mauritius,EasternAfrica,1969,1265
+Mexico,CentralAmerica,1964375,129163
+"Micronesia, Fed. Sts.",Micronesia,702,106
+Monaco,WesternEurope,2,39
+Mongolia,EasternAsia,1564116,3076
+Montenegro,SouthernEurope,13812,629
+Morocco,NorthernAfrica,446550,35740
+Mozambique,EasternAfrica,799380,29669
+Myanmar,South-easternAsia,676577,53371
+Namibia,SouthernAfrica,824116,2534
+Nauru,Micronesia,21,11
+Nepal,SouthernAsia,147181,29305
+Netherlands,WesternEurope,41542,17036
+New Zealand,Oceania,268107,4706
+Nicaragua,CentralAmerica,130373,6218
+Niger,WesternAfrica,1267000,21477
+Nigeria,WesternAfrica,923768,190886
+Northern Mariana Islands,Micronesia,457,55
+Norway,NorthernEurope,386194,5305
+Oman,WesternAsia,309500,4636
+Pakistan,SouthernAsia,796095,197016
+Palau,Micronesia,459,22
+Panama,CentralAmerica,75320,4099
+Papua New Guinea,Melanesia,462840,8251
+Paraguay,SouthAmerica,406752,6811
+Peru,SouthAmerica,1285216,32166
+Philippines,South-easternAsia,300000,104918
+Poland,EasternEurope,312679,38171
+Portugal,SouthernEurope,92226,10330
+Qatar,WesternAsia,11607,2639
+Romania,EasternEurope,238391,19679
+Russian,EasternEurope,17098246,143990
+Rwanda,EasternAfrica,26338,12208
+Samoa,Polynesia,2842,196
+San Marino,SouthernEurope,61,33
+Sao Tome and Principe,MiddleAfrica,964,204
+Saudi Arabia,WesternAsia,2206714,32938
+Senegal,WesternAfrica,196712,15851
+Serbia,SouthernEurope,88499,8791
+Seychelles,EasternAfrica,457,95
+Sierra Leone,WesternAfrica,72300,7557
+Singapore,South-easternAsia,719,5709
+Slovakia,EasternEurope,49035,5448
+Slovenia,SouthernEurope,20273,2080
+Solomon Islands,Melanesia,28896,611
+Somalia,EasternAfrica,637657,14742
+South Africa,SouthernAfrica,1221037,56717
+Spain,SouthernEurope,505944,46354
+Sri Lanka,SouthernAsia,65610,20877
+Sudan,NorthernAfrica,-99,40533
+Suriname,SouthAmerica,163820,563
+Sweden,SouthernAfrica,438574,9911
+Switzerland,NorthernEurope,41291,8476
+Syria,WesternEurope,185180,18270
+Tajikistan,WesternAsia,142600,8921
+Thailand,CentralAsia,513120,69038
+Timor-Leste,South-easternAsia,14919,1296
+Togo,WesternAfrica,56785,7798
+Tonga,Polynesia,747,108
+Trinidad and Tobago,Caribbean,5127,1369
+Tunisia,NorthernAfrica,163610,11532
+Turkey,WesternAsia,783562,80745
+Turkmenistan,CentralAsia,488100,5758
+Tuvalu,Polynesia,26,11
+Uganda,EasternAfrica,241550,42863
+Ukraine,EasternEurope,603500,44223
+United Arab Emirates,WesternAsia,83600,9400
+United Kingdom,NorthernEurope,242495,66182
+United States of America,NorthernAmerica,9833517,324460
+Uruguay,SouthAmerica,173626,3457
+Uzbekistan,CentralAsia,448969,31911
+Vanuatu,Melanesia,12189,276
+Venezuela,SouthAmerica,912050,31977
+Vietnam,South-easternAsia,330967,95541
+Yemen,NorthernAmerica,527968,28250
+Zambia,SouthernEurope,752612,17094
+Zimbabwe,EasternAfrica,390757,16530
